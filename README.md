@@ -9,3 +9,5 @@ _Matech department of Acme.com decides to launch a new application in response t
 _At this point, GKE team is having concerns around trusting the martech apps, authenticating them, allowing private-only communication, unfortunately they don't have any API gateway of sorts, neither it's feasible to implement one, however, they do have Istio! In the remaining tutorial, we will explore how a Cloud Run hosted application will authenticate with Istio ingress gateway using mTLS and will use serverless VPC access to communicate with a L4 internal load balancer privately, behind which the Istio ingress gateway will process and route the incoming traffic._
 
 
+_Proposed high level architecture_
+![cloud-run-istio-mTLS-option-1](https://user-images.githubusercontent.com/102101947/165199706-c20ee24e-2226-4e11-b66b-ed92d7e59b9a.png)
