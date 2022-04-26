@@ -6,8 +6,8 @@ _A hypothetical company, Acme.com is a leading retailer who has a set of private
 
 _Matech department of Acme.com decides to launch a new application in response to a lucartive customer acquisition opportunity in the market, they believe that through the existing set of services (in GKE) they should be able mine enough data and information to power an attractive front-end experience, they choose Google Cloud Run as the platform of choice to host front-end applications, given it's simplicity, pay-as-you-execute model, ability to scale while responding to 'bursty' load profile and all that with minimal infrastructure management, yes Martech team do not have K8 experts on their team!_
 
-_As this proposal reaches the IT admins of the GKE services team, they have few concerns:
-1. How do we trust the martech applications?
+_As this proposal reaches the IT admins of the GKE services team, they have few concerns:_
+_1. How do we trust the martech applications?
 2. How do we make sure that our services are never exposed to the internet as martech apps consume them?_
 
 
