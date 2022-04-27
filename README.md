@@ -14,7 +14,7 @@ _Thoughtfully, the GKE services team decides to leverage Istio ingress gateway a
 
 _Client web apps, in turn use service accounts (with invoker IAM) role to access Cloud Run containers running Envoy proxies (proxies are not exposed to web but can be invoked by another Cloud Run service authenticated to do so). This architecture yields several benefits_
 
-1.Martech teams gains speed to market by deploying to Cloud Run while focusing solely on application logic
-2.GKE services team do not have to change anything they possess today neither they need to provision infrastructure to host authenticated proxies, they can also get benefits of Cloud Run's fully managed infrastructure
-3.Given Envoy's amazing capabilities to act as edge-proxies and side-cars, martech apps are relieved from building networking logic, resiliency, observability and traffic routing mechanism into their code, Envoy does that for them
-4.And of course, they do not need API gateways for such one-off deployments
+- Martech teams gains speed to market by deploying to Cloud Run while focusing solely on application logic
+- GKE services team do not have to change anything they possess today neither they need to provision infrastructure to host authenticated proxies, they can also get benefits of Cloud Run's fully managed infrastructure
+- Given Envoy's amazing capabilities to act as edge-proxies and side-cars, martech apps are relieved from building networking logic, resiliency, observability and traffic routing mechanism into their code, Envoy does that for them
+- And of course, they do not need API gateways for such one-off deployments
