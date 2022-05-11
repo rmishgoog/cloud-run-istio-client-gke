@@ -7,4 +7,4 @@ _Google Cloud Run checks all the boxes when it comes to having a compute option 
 1. _All of the service to service communication is authenticated with proper RBAC applied._
 2. _All of the service to service communication is kept on private network to further boost the security posture._
 
-
+_In this tutorial we will go through a similar scenario where an enterprise is looking to innvoate through web applications or APIs deployed quickly and without much friction from infrastructure management side but yet can re-use the data and functionality available as enterprise services hosted on Google Kubernetes Engine (GKE), they must connect their web based public APIs or applications securely and privately to the GKE hosted services, as the norm suggests. While one can think of using an API gateway, but this enterprise has ruled it out because they prefer to expose only coarse grained "business functions" through API gateway and not granular data services which were not made to be available publicly or outside the cluster._
