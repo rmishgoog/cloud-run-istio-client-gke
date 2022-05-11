@@ -1,0 +1,40 @@
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+ name: backend-api-gateway
+ namespace: istio-poc
+spec:
+ selector:
+   istio: ingress # use istio default ingress gateway
+ servers:
+ - port:
+     number: 443
+     name: https
+     protocol: HTTPS
+   tls:
+     mode: MUTUAL
+     credentialName: service-credential # must be the same as secret
+   hosts:
+   - "*"
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: backend-api-virtual-service
+  namespace: istio-poc
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - backend-api-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /persons
+    route:
+    - destination:
+        port:
+          number: 80
+        host: gke-backend-rest-api

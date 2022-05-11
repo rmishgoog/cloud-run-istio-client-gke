@@ -1,0 +1,4 @@
+service:
+  annotations:  {
+    networking.gke.io/load-balancer-type: "Internal"
+  }
