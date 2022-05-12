@@ -55,7 +55,7 @@ resource "google_cloud_run_service" "envoy_proxy_service" {
           protocol = "TCP"
 
         }
-        image = "gcr.io/rmishra-serverless-sandbox/envoy-proxy:latest"
+        image = "gcr.io/${var.project}/envoy-proxy:latest"
       }
     }
   }
@@ -106,7 +106,7 @@ resource "google_cloud_run_service" "frontend_client_service" {
     spec {
       service_account_name = google_service_account.frontend_service_account.email
       containers {
-        image = "gcr.io/rmishra-serverless-sandbox/fronted-api:latest"
+        image = "gcr.io/${var.project}/fronted-api:latest"
         env {
           name  = "BACKEND_AUDIENCE_URL"
           value = "${google_cloud_run_service.envoy_proxy_service.status[0].url}"
