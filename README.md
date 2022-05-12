@@ -24,7 +24,7 @@ _The system architecture will look like this:_
 
 ##### Execution steps:
 
-Pre-requisites:
+_Pre-requisites:_
 1. _Must have access to Google Cloud Platform, you can also sign-up for a free trial with upto $300 free credit on your cloud spends, we will use Terraform for most of the provisioning work and thus you can reliably destroy the resources that you create, free tier may have some quota restrictions on vCPUs and disk size, you can always adjust the no. of nodes in GKE cluster and disk size if needed._
 2. _A Google Cloud project with billing enabled, your account should have project owner role on the project, though it's a best practice to follow the principle of least priviliges, for this exercise, the focus is not IAM, we will just use a generic premitive role of owner to execute the resources._
 3. _Access to Google Cloud shell, you can log into Google Cloud console and open up your cloud shell instance to execute all the steps from within your browser OR you can alternatively use gcloud SDK installed on your machine/workstation, please note that this exercise makes use of terraform. git, kubectl docker and helm, Google Cloud shell comes installed with all these utilities, else you need to have them installed on your workstation_.
@@ -61,7 +61,8 @@ _If you are working out of Google Cloud Shell, you can use the below command as 
 ```
 gcloud auth login --activate --no-launch-browser -quiet --update-adc
 ```
-##### Foundational infrastructure with Terraform and gcloud:
+_Foundational infrastructure with Terraform and gcloud:_
+
 _We will begin with provisioning the basic back-end infrastructure, that is a custom network, a subnetwork, a GKE cluster etc:_
 ```
 cd terraform-automation/kubernetes-backend/
@@ -118,7 +119,8 @@ gcloud compute firewall-rules list --filter="name~gke-backend-services-primary-c
 ```
 gcloud compute firewall-rules update <your-firewall-rule-name-from-above> --allow tcp:10250,tcp:443,tcp:15017
 ```
-##### Istio installtion with Helm:
+_Istio installtion with Helm:_
+
 We will be using Helm to install Istio, feel free to use your preferred method of installation, like istioctl (but you need to download the binaries):
 ```
 helm repo add istio https://istio-release.storage.googleapis.com/charts
@@ -188,17 +190,17 @@ gcloud auth configure-docker
 sudo docker build -t gcr.io/<your-project-name>/backend-api:latest .
 ```
 ```
-docker push gcr.io/rmishra-serverless-sandbox/backend-api:latest
+docker push gcr.io/<your-project-name>/backend-api:latest
 ```
 _Also, go ahead and build the front-end api, you will be running it in Cloud Run, which comes later but you can opt to build and push the container image now itself._
 ```
 cd ../front-end-app/
 ```
 ```
-sudo docker build -t gcr.io/rmishra-serverless-sandbox/fronted-api:latest .
+sudo docker build -t gcr.io/<your-project-name>/fronted-api:latest .
 ```
 ```
-docker push gcr.io/rmishra-serverless-sandbox/fronted-api:latest
+docker push gcr.io/<your-project-name>/fronted-api:latest
 ```
 _Now that the backend-api image is available, we will go back to deploying the our Kubernetes resources._
 ```
@@ -257,10 +259,10 @@ endpoints:
 ```
 _Now, build the image using the docker file provided._
 ```
-sudo docker build -t gcr.io/rmishra-serverless-sandbox/envoy-proxy:latest .
+sudo docker build -t gcr.io/<your-project-name>/envoy-proxy:latest .
 ```
 ```
-docker push gcr.io/rmishra-serverless-sandbox/envoy-proxy:latest
+docker push gcr.io/<your-project-name>/envoy-proxy:latest
 ```
 _Awesome, we have got the Envoy and front-end api pushed, next is to deploy Cloud Run services with front-end api and Envoy containers._
 ```
