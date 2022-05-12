@@ -27,6 +27,11 @@ _The system architecture will look like this:_
 Pre-requisites:
 1. _Must have access to Google Cloud Platform, you can also sign-up for a free trial with upto $300 free credit on your cloud spends, we will use Terraform for most of the provisioning work and thus you can reliably destroy the resources that you create, free tier may have some quota restrictions on vCPUs and disk size, you can always adjust the no. of nodes in GKE cluster and disk size if needed._
 2. _A Google Cloud project with billing enabled, your account should have project owner role on the project, though it's a best practice to follow the principle of least priviliges, for this exercise, the focus is not IAM, we will just use a generic premitive role of owner to execute the resources._
-3. _Access to Google Cloud shell, you can log into Google Cloud console and open up your cloud shell instance to execute all the steps from within your browser OR you can alternatively use gcloud SDK installed on your machine/workstation, please note that this exercise makes use of terraform, kubectl docker and helm, Google Cloud shell comes installed with all these utilities, else you need to have them installed on your workstation_.
+3. _Access to Google Cloud shell, you can log into Google Cloud console and open up your cloud shell instance to execute all the steps from within your browser OR you can alternatively use gcloud SDK installed on your machine/workstation, please note that this exercise makes use of terraform. git, kubectl docker and helm, Google Cloud shell comes installed with all these utilities, else you need to have them installed on your workstation_.
 4. _Working knowledge of Kubernetes and Istio is sufficient._
 5. _Lastly, time to complete this exercise._
+
+Clone the source code to your workstation:
+```
+git clone https://github.com/rmishgoog/cloud-run-istio-client-gke.git
+```
