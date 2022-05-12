@@ -22,6 +22,8 @@ _The system architecture will look like this:_
 8. _Also, make a note that Envoy Cloud Run service has been configured as an "internal only" service which needs authentication, so the front-end api must provide auth information, must have the right role to invoke the service and use the VPC connector for reaching into the Envoy service._
 9. _Lastly, the front-end api, is open to public and can be invoked from anywhere on the internet, while an ideal example would be a truste web-ui, for this exercies, I will stick to a simple REST API calling another (which is in GKE) through a proxy._
 
+![Wayfair_ E-Commerce Reference Architectures - cloud-run-istio-mTLS-option-2](https://user-images.githubusercontent.com/102101947/168150912-08708fc1-eea9-42a3-b14b-3e9cd452021e.png)
+
 ##### Execution steps:
 
 _Pre-requisites:_
