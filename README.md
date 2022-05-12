@@ -266,4 +266,20 @@ _Awesome, we have got the Envoy and front-end api pushed, next is to deploy Clou
 ```
 cd ../terraform-automation/cloud-run-envoy-proxy/
 ```
-
+_Create a terraform.tfvars file and customize it per your environment._
+```
+project        = "<your-project>"
+region         = "<your cloud run region, keep it same as GKE cluster>"
+vpcnetworkname = "<name of the vpc where GKE cluster is running, this will be used for vpc connectors>"
+```
+_Pay attention to this resource block in the main.tf file._
+```
+resource "google_cloud_run_service_iam_member" "member-secondary-service" {
+  location = google_cloud_run_service.frontend_client_service.location
+  project  = google_cloud_run_service.frontend_client_service.project
+  service  = google_cloud_run_service.frontend_client_service.name
+  role     = "roles/run.invoker"
+  member   = "user:<my project-owner account email who is authenticated with gcloud>"
+}
+```
+_I am deliberately using my developer account, while building the demo, I choose not to expose my service to anyone on the internet and must authenticate the incoming request, I get charged for Cloud Run executions. You can however choose to expose this to "allUsers" as member, while creating the above binding for front-end api._ 
