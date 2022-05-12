@@ -347,4 +347,4 @@ terraform destroy -auto-approve
 ```
 _This shall reclaim the kubernetes cluster, networking components and Cloud Run services which would have been major contributors to your billing. If there's anything you provisioned outside of terraform for testing purposes, you need to remove it manually._
 
-#### The opinions, code, configurations etc. are purely for demo and learning puproses and personal with no support or SLAs. Google Cloud is not liable to provide any production or non-production support, patches, security fixes etc. for any of the artifacts used or created in this exercise.
+#### Disclaimer: The opinions, architecture, code, configurations etc. are purely for demo and learning puproses, with no support or SLAs. Google Cloud is not liable to provide any production or non-production support, patches, security fixes etc. for any of the artifacts used or created in this exercise.
