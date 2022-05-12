@@ -284,7 +284,7 @@ resource "google_cloud_run_service_iam_member" "member-secondary-service" {
 ```
 _I am deliberately using my developer account, while building the demo, I choose not to expose my service to anyone on the internet and must authenticate the incoming request, I get charged for Cloud Run executions. You can however choose to expose this to "allUsers" as member, while creating the above binding for front-end api._
 
-Run the terraform code:
+_Run the terraform code:_
 ```
 terraform init
 ```
@@ -301,12 +301,12 @@ _Once the terraform has finished provisioning your Cloud Run services, you will 
 4. _The application code in the front-end api uses Google client auth lib to generate an auth token automatically associates with the outbound request to Envoy Cloud Run service, not that you don't have to do anything like token validation or TLS termination in Envoy itself, Cloud Run takes care of it._
 5. _It shall also be noted that Envoy service is internal and thus the front-end service must also access it via the VPC connector, read more on ingress controls for Cloud Run in Google's documentation._
 
-_Now, that the services are ready, it's time to test, go to the Google Cloud console->serverless->Cloud Run. Click the front-end api and note down the URI for the front-end api. Our backend service responds at "/persons". Let's give it a try, remember to change the URL to your service!_
+_Now, that the services are ready, it's time to test, go to the Google Cloud console->serverless->Cloud Run. Click the front-end api and note down the URI for the front-end api. Our backend service responds at "/persons". Let's give it a try, remember to change the URL to your service! Also if your front-end api invocations are un-authenticated you will not need the identity token in the curl command below:_
 
 ```
 curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" https://frontend-api-service-wnyq7tk2pa-uc.a.run.app/persons
 ```
-And voila!
+_And voila!_
 ```
 [
     {
@@ -332,9 +332,9 @@ And voila!
     }
 ]
 ```
-You can also add -v option to curl command if you want to see all the good stuff like TLS handshake, verion of TLS used, Envoy added headres etc.
+_You can also add -v option to curl command if you want to see all the good stuff like TLS handshake, verion of TLS used, Envoy added headres etc.
 
-That's it! Feel free to destroy the infrastructure to avoid billing!
+That's it! Feel free to destroy the infrastructure to avoid billing!_
 
 ```
 terraform destroy -auto-approve
@@ -345,6 +345,6 @@ cd ../kubernetes-backend/
 ```
 terraform destroy -auto-approve
 ```
-This shall reclaim the kubernetes cluster, networking components and Cloud Run services which would have been major contributors to your billing. If there's anything you provisioned outside of terraform for testing purposes, you need to remove it manually.
+_This shall reclaim the kubernetes cluster, networking components and Cloud Run services which would have been major contributors to your billing. If there's anything you provisioned outside of terraform for testing purposes, you need to remove it manually._
 
 #### The opinions, code, configurations etc. are purely for demo and learning puproses and personal with no support or SLAs. Google Cloud is not liable to provide any production or non-production support, patches, security fixes etc. for any of the artifacts used or created in this exercise.
