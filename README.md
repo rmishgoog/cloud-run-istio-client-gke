@@ -31,33 +31,239 @@ Pre-requisites:
 4. _Working knowledge of Kubernetes and Istio is sufficient._
 5. _Lastly, time to complete this exercise._
 
-Clone the source code to your workstation:
+_Clone the source code to your workstation:_
 ```
 git clone https://github.com/rmishgoog/cloud-run-istio-client-gke.git
 ```
-Authenticate the gcloud CLI, follow the instructions, you will be asked to follow the Google OAuth flow:
+_Authenticate the gcloud CLI, follow the instructions, you will be asked to follow the Google OAuth flow:_
 ```
 gcloud auth login:
 ```
-Make sure that gcloud SDK is appropriately configured for your account and project, run the below command and check the active account:
+_Make sure that gcloud SDK is appropriately configured for your account and project, run the below command and check the active account:_
 ```
 gcloud auth list
 ```
-Run the below command to see the active configuration for gcloud CLI:
+_Run the below command to see the active configuration for gcloud CLI:_
 ```
 gcloud config list
 ```
-If you do not see the right project selected you can always set it with:
+_If you do not see the right project selected you can always set it with:_
 ```
 gcloud config set project <your-correct-project-id>
 ```
-Finally, update the Application Default Credentials (ADCs) to be used by the CLI while reaching out Google Cloud APIs
+_Finally, update the Application Default Credentials (ADCs) to be used by the CLI while reaching out Google Cloud APIs:_
 ```
 gcloud auth application-default login
 ```
-Above command has no effect on credentials set using gcloud auth login, it only updates a special file at a certain location with auth info and project/billing context which can be used while calling the Google Cloud APIs, you can very well authenticate as a service account if you do not wish to execute the provisioning as your "owner" account.
+_Above command has no effect on credentials set using gcloud auth login, it only updates a special file at a certain location with auth info and project/billing context which can be used while calling the Google Cloud APIs, you can very well authenticate as a service account if you do not wish to execute the provisioning as your "owner" account._
 
-If you are working out of Google Cloud Shell, you can use the below command as "one-does-it-all", since it does not have a browser installed:
+_If you are working out of Google Cloud Shell, you can use the below command as "one-does-it-all", since it does not have a browser installed:_
 ```
 gcloud auth login --activate --no-launch-browser -quiet --update-adc
 ```
+##### Foundational infrastructure with Terraform and gcloud:
+_We will begin with provisioning the basic back-end infrastructure, that is a custom network, a subnetwork, a GKE cluster etc:_
+```
+cd terraform-automation/kubernetes-backend/
+```
+_In this directory, create a file terraform.tfvars and provide values for the following variables:_
+```
+project           = "<your-project-name>"
+region            = "<choosen google cloud region"
+zone              = "<choosen google cloud zone in the region"
+vpcnetworkname    = "<name of your vpc network>"
+vpcsubnetworkname = "<name of your subnetwork>"
+natgateway        = "<name of your nat gateway>"
+routername        = "<name of your regional router>"
+machinetype       = "e2-medium"
+#Feel free to change the machine type, I would recommend having minimum 4 vCPUs
+```
+_There's a variables.tf file and you are welcome to change the values here as appropriate, like the number of nodes or name of the cluster._
+
+_Once the values are set, init the terraform so that it can grab the provider plugins etc:_
+```
+terraform init
+```
+_Generate a plan and make sure there are no fundamental errors:_
+```
+terraform plan
+```
+_Run the terraform configurations:_
+```
+terraform apply -auto-approve
+```
+_Once terraform has completed the provisioning, you have the basic set-up you need for the backend, running this terraform configuration also creates a custom custom service account to be used by the nodes in the cluster and also a GCR registry which wil house the container images:_
+```
+terraform output
+```
+_Don't copy the text below, it will be different for your project:_
+```
+gcr-bucket-name = "artifacts.rmishra-serverless-sandbox.appspot.com"
+gke-node-sa-email = "backend-gke-nodes-sa@rmishra-serverless-sandbox.iam.gserviceaccount.com"
+```
+_Assign the service account the "object viewer" role on the Google Cloud Storage thus created as a result of provisioning GCR._
+```
+gsutil iam ch serviceAccount:<your-service-account-email>:objectViewer gs://<your gcs bucket name>
+```
+_Next, let's authenticate kubectl CLI because we are going to need it for installing Istio components and as well as our own kubernetes resources:_
+```
+gcloud container clusters get-credentials backend-services-primary-cluster --zone us-central1-a
+```
+_The cluster name and zone are the same as I have used in terraform variables, if you choose a different name/zone, please update and execute._
+
+Before moving to the Istio installation, you need to execute the below commands to open up the port 15017, the firewall rules created by GKE do not do so and thus it will prevent the controlplane to invoke the mutating webhook for sidecar injection.
+```
+gcloud compute firewall-rules list --filter="name~gke-backend-services-primary-cluster-[0-9a-z]*-master"
+```
+```
+gcloud compute firewall-rules update <your-firewall-rule-name-from-above> --allow tcp:10250,tcp:443,tcp:15017
+```
+##### Istio installtion with Helm:
+We will be using Helm to install Istio, feel free to use your preferred method of installation, like istioctl (but you need to download the binaries):
+```
+helm repo add istio https://istio-release.storage.googleapis.com/charts
+```
+```
+helm repo update
+```
+```
+kubectl create ns istio-system
+```
+```
+helm install istio-base istio/base -n istio-system --kubeconfig <path-to-kube-config>
+```
+Under your home directory, look for ~/.kube/config, typically this is the config that kubectl will use to determine current cluster's context but you can always provide your own. You can also run the below command to check if you are going after the right cluster:
+```
+kubectl config current-context
+```
+```
+helm install istiod istio/istiod -n istio-system --wait --kubeconfig <path-to-kube-config>
+```
+```
+kubectl create namespace istio-ingress
+```
+```
+kubectl label namespace istio-ingress istio-injection=enabled
+```
+_Now, this is where it will get a little interesting, if you just deploy the Ingress Gateway resource as it ships with Istio OSS, it exposes the gateway as a service of type LoadBalancer, which rolls up to an external Network (L4) load balancer on Google Cloud (implementation will vary between cloud providers). However, going back to our business scenario, this is out and out a private GKE cluster with no externally accesible services or endpoints, everything must come through trusted sources and over private networks (either the same network as the GKE cluster is in, or a peered network or a network connected via a VPN or Cloud Interconnect._
+
+_To fulfill this scenario, we will override the helm values and add annotations which will tell GKE to provision the Istio ingress gateway as an internal load balancer (TCP/UDP) on Google Cloud, for simplicity, we will fetch the ILB IPs from the same subnet as the GKE cluster is using._
+
+```
+cd ../../istio-helm-overrides-app-manifests/helm-override/
+```
+```
+helm install istio-ingress istio/gateway -n istio-ingress --wait -f ingress-gateway-config.yaml --kubeconfig <path-to-kube-config>
+```
+_You can verify the Ingress gateway provisioned as a result of the above command, home->kubernetes engine->services and ingress_.
+
+##### Generate certificates and keys for mTLS configurations and securing the Ingress Gateway
+_We will simply use opnessl (if you are not on a Linux machine, please follow the instruction in Istio documentation under secure gateways._
+```
+cd ..
+```
+```
+openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -subj '/O=example Inc./CN=example.com' -keyout example.com.key -out example.com.crt
+```
+```
+openssl req -out services.example.com.csr -newkey rsa:2048 -nodes -keyout services.example.com.key -subj "/CN=services.example.com/O=services organization"
+```
+```
+openssl x509 -req -sha256 -days 365 -CA example.com.crt -CAkey example.com.key -set_serial 0 -in services.example.com.csr -out services.example.com.crt
+```
+```
+kubectl create -n istio-ingress secret generic service-credential --from-file=tls.key=services.example.com.key \
+--from-file=tls.crt=services.example.com.crt --from-file=ca.crt=example.com.crt
+```
+_At this point, you created server certificate keys, also a root CA which we use for signing the CSRs._
+
+_Next, we are going to build the back-end api application and make the container image available in GCR, then we will return to this place:_
+```
+cd ../../back-end-app/
+```
+```
+gcloud auth configure-docker
+```
+```
+sudo docker build -t gcr.io/<your-project-name>/backend-api:latest .
+```
+```
+docker push gcr.io/rmishra-serverless-sandbox/backend-api:latest
+```
+_Also, go ahead and build the front-end api, you will be running it in Cloud Run, which comes later but you can opt to build and push the container image now itself._
+```
+cd ../front-end-app/
+```
+```
+sudo docker build -t gcr.io/rmishra-serverless-sandbox/fronted-api:latest .
+```
+```
+docker push gcr.io/rmishra-serverless-sandbox/fronted-api:latest
+```
+_Now that the backend-api image is available, we will go back to deploying the our Kubernetes resources._
+```
+cd ../istio-helm-overrides-app-manifests/custom-service-manifest/
+```
+_Open the gke-backend-kubernetes-resources.yaml and make sure you update the image URL. Basically just update the project under which your gcr registry is._
+```
+kubectl apply -f gke-backend-kubernetes-resources.yaml
+```
+_Next, deploy the gateway and the virtual service._
+```
+kubectl apply -f gke-backend-istio-resources.yaml
+```
+_At this point in time, your back-end is fully ready to serve it's consumers and Ingress Gateway is configured to perform mTLS with the connecting clients, but who is the client?_
+
+_Take a look at the architecture, the front-end api does not connect to the GKE backend directly, instead it connects to an internal only Envoy proxy services, also running on Cloud Run, this Envoy instance is going to act as an authenticated client to the Ingress Gateway and will use VPC connector for establishing a private connection to the VPC where the internal load balancer fronting the Ingress Gateway resies. This frees up the web apis to build and store backend authtentication skeletons each time, for them, Envoy will always be the entrypoint, no matter where the backend is._
+
+_So, over to configuring Envoy then! But we need the client certificates and ca certificate (we created that already) in order for Envoy to successfully handle the mTLS with the ingress gateway._
+
+```
+cd ..
+```
+```
+openssl req -out client.example.com.csr -newkey rsa:2048 -nodes -keyout client.example.com.key -subj "/CN=client.example.com/O=client organization"
+```
+```
+openssl x509 -req -sha256 -days 365 -CA example.com.crt -CAkey example.com.key -set_serial 1 -in client.example.com.csr -out client.example.com.crt
+```
+_Copy these client certificates to the envoy-proxy directory._
+```
+cp client.example.com.crt ../envoy-proxy/
+```
+```
+cp client.example.com.key ../envoy-proxy/
+```
+```
+cp example.com.crt ../envoy-proxy/
+```
+```
+rm client.example.com.crt&& \
+rm client.example.com.key
+```
+_Now, let's go to the Envoy directory, build and deploy the Envoy proxy image to gcr.io_
+```
+cd ../envoy-proxy/
+```
+_Please, update the IP of the internal load balancer in the envoy.yaml as allocated to your resource, in a more real world scenario, you would use a resolvable DNS name and also configure Envoy to do SAN based matching based upon your certificates, for demo/learning purposes, I have not used that, neither I own a domain to have real signed certificates with CN and SAN issued to me._
+```
+endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: <your ILB address>
+                port_value: 443
+```
+_Now, build the image using the docker file provided._
+```
+sudo docker build -t gcr.io/rmishra-serverless-sandbox/envoy-proxy:latest .
+```
+```
+docker push gcr.io/rmishra-serverless-sandbox/envoy-proxy:latest
+```
+_Awesome, we have got the Envoy and front-end api pushed, next is to deploy Cloud Run services with front-end api and Envoy containers._
+```
+cd ../terraform-automation/cloud-run-envoy-proxy/
+```
+
