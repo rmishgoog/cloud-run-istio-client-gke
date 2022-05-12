@@ -20,4 +20,13 @@ _The system architecture will look like this:_
 6. _Since Envoy on Cloud Run is acting as a gateway for the front-end api and running on managed infrastruture outside of the private network, we want Envoy to authenticate using client certificates for the Istio ingress gateway (that is, using mTLS) and since Istio ingress gateway is internal only, Envoy must communicate over private RFC1918 IPs._
 7. _In this exercise, Envoy container will be supplied with the required certificates and keys and will establish private connectivity to Istio ingress gateway usin "serverless VPC access" vpc connector._
 8. _Also, make a note that Envoy Cloud Run service has been configured as an "internal only" service which needs authentication, so the front-end api must provide auth information, must have the right role to invoke the service and use the VPC connector for reaching into the Envoy service._
-9. _Lastly front-end api, is open to public and can be invoked from anywhere on the internet, while an ideal example would be a truste web-ui, for this exercies, I will stick to a simple REST API calling another (which is in GKE) through a proxy._
+9. _Lastly, the front-end api, is open to public and can be invoked from anywhere on the internet, while an ideal example would be a truste web-ui, for this exercies, I will stick to a simple REST API calling another (which is in GKE) through a proxy._
+
+##### Execution steps:
+
+Pre-requisites:
+1. _Must have access to Google Cloud Platform, you can also sign-up for a free trial with upto $300 free credit on your cloud spends, we will use Terraform for most of the provisioning work and thus you can reliably destroy the resources that you create, free tier may have some quota restrictions on vCPUs and disk size, you can always adjust the no. of nodes in GKE cluster and disk size if needed._
+2. _A Google Cloud project with billing enabled, your account should have project owner role on the project, though it's a best practice to follow the principle of least priviliges, for this exercise, the focus is not IAM, we will just use a generic premitive role of owner to execute the resources._
+3. _Access to Google Cloud shell, you can log into Google Cloud console and open up your cloud shell instance to execute all the steps from within your browser OR you can alternatively use gcloud SDK installed on your machine/workstation, please note that this exercise makes use of terraform, kubectl docker and helm, Google Cloud shell comes installed with all these utilities, else you need to have them installed on your workstation_.
+4. _Working knowledge of Kubernetes and Istio is sufficient._
+5. _Lastly, time to complete this exercise._
