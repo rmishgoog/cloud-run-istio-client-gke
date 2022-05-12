@@ -35,3 +35,29 @@ Clone the source code to your workstation:
 ```
 git clone https://github.com/rmishgoog/cloud-run-istio-client-gke.git
 ```
+Authenticate the gcloud CLI, follow the instructions, you will be asked to follow the Google OAuth flow:
+```
+gcloud auth login:
+```
+Make sure that gcloud SDK is appropriately configured for your account and project, run the below command and check the active account:
+```
+gcloud auth list
+```
+Run the below command to see the active configuration for gcloud CLI:
+```
+gcloud config list
+```
+If you do not see the right project selected you can always set it with:
+```
+gcloud config set project <your-correct-project-id>
+```
+Finally, update the Application Default Credentials (ADCs) to be used by the CLI while reaching out Google Cloud APIs
+```
+gcloud auth application-default login
+```
+Above command has no effect on credentials set using gcloud auth login, it only updates a special file at a certain location with auth info and project/billing context which can be used while calling the Google Cloud APIs, you can very well authenticate as a service account if you do not wish to execute the provisioning as your "owner" account.
+
+If you are working out of Google Cloud Shell, you can use the below command as "one-does-it-all", since it does not have a browser installed:
+```
+gcloud auth login --activate --no-launch-browser -quiet --update-adc
+```
