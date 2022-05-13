@@ -336,9 +336,9 @@ _And voila!_
     }
 ]
 ```
-_You can also add -v option to curl command if you want to see all the good stuff like TLS handshake, verion of TLS used, Envoy added headres etc.
+_You can also add -v option to curl command if you want to see all the good stuff like TLS handshake, verion of TLS used, Envoy added headres etc._
 
-That's it! Feel free to destroy the infrastructure to avoid billing!_
+_That's it! Feel free to destroy the infrastructure to avoid billing!_
 
 ```
 terraform destroy -auto-approve
